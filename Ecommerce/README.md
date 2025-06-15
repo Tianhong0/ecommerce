@@ -1,85 +1,130 @@
-# 电商系统
+# 电商后台管理系统
 
 ## 项目介绍
-这是一个基于Spring Boot的电商系统，实现了用户权限管理、商品管理、订单管理等核心功能。
-
-## Kafka消息队列的应用
-
-本项目使用Kafka消息队列解决以下问题：
-
-### 1. 异步处理订单流程
-- 订单创建后通过Kafka异步处理状态变更
-- 订单支付、发货、完成等状态变更通过消息队列异步通知
-- 解耦了订单处理的各个环节，提高系统响应速度
-
-### 2. 库存管理优化
-- 库存扣减和归还通过消息队列异步处理
-- 实现了库存预警机制，当库存低于阈值时自动发送预警消息
-- 订单取消时自动归还库存，保证数据一致性
-
-### 3. 日志收集与分析
-- 通过AOP切面收集用户操作日志
-- 收集系统错误日志
-- 通过Kafka将日志异步写入文件系统，不影响主业务流程
-
-### 4. 峰值流量削峰填谷
-- 订单创建和处理通过消息队列缓冲
-- 库存操作通过消息队列匀速处理
-- 日志处理不影响主业务流程
-- 提高系统在高并发场景下的稳定性
-
-## Kafka主题设计
-
-### 订单相关主题
-- `topic-order-create`: 订单创建
-- `topic-order-pay`: 订单支付
-- `topic-order-delivery`: 订单发货
-- `topic-order-complete`: 订单完成
-- `topic-order-cancel`: 订单取消
-
-### 库存相关主题
-- `topic-stock-deduct`: 库存扣减
-- `topic-stock-return`: 库存归还
-- `topic-stock-alert`: 库存预警
-
-### 日志相关主题
-- `topic-log-user-action`: 用户行为日志
-- `topic-log-system`: 系统日志
-- `topic-log-error`: 错误日志
+这是一个基于Spring Boot 3.x开发的电商后台管理系统，提供了完整的商品管理、订单管理、用户管理等功能。系统采用前后端分离架构，后端提供RESTful API接口。
 
 ## 技术栈
-- Spring Boot 3.1.0
-- Spring Security
-- MyBatis Plus
-- Redis
-- Kafka
-- MySQL
+- 核心框架：Spring Boot 3.1.0
+- 安全框架：Spring Security + JWT
+- 持久层框架：MyBatis Plus 3.5.3
+- 数据库：MySQL
+- 缓存：Redis
+- 消息队列：Kafka
+- 对象存储：阿里云OSS
+- 其他：Lombok、AOP等
 
-## 运行环境要求
-- JDK 17+
-- MySQL 8.0+
-- Redis 6.0+
-- Kafka 3.0+
+## 主要功能
+### 1. 用户管理
+- 用户注册、登录
+- 基于JWT的认证授权
+- 用户权限管理
+- 用户信息管理
 
-## 启动步骤
-1. 确保MySQL、Redis和Kafka服务已启动
-2. 修改`application.yml`中的数据库、Redis和Kafka配置
-3. 执行`mvn spring-boot:run`启动应用
+### 2. 商品管理
+- 商品分类管理
+- 商品信息管理
+- 商品SKU管理
+- 商品库存管理
+- 商品图片上传（阿里云OSS）
+
+### 3. 订单管理
+- 订单创建和管理
+- 订单状态流转
+- 订单支付管理
+- 订单退款管理
+- 订单物流管理
+
+### 4. 系统功能
+- 系统监控（CPU、内存等）
+- 操作日志记录
+- 异常处理
+- 数据统计
 
 ## 项目结构
 ```
 src/main/java/com/example/admin/
-├── aspect/           # 切面
-├── config/           # 配置类
-├── constant/         # 常量类
-├── controller/       # 控制器
-├── dto/              # 数据传输对象
-│   └── message/      # 消息模型
-├── entity/           # 实体类
-├── exception/        # 异常处理
-├── mapper/           # 数据访问层
-├── security/         # 安全配置
-├── service/          # 服务层
-│   └── impl/         # 服务实现
-└── util/             # 工具类
+├── aspect/        # AOP切面，用于日志记录等
+├── config/        # 配置类
+├── constant/      # 常量定义
+├── controller/    # 控制器
+├── dto/          # 数据传输对象
+├── entity/       # 实体类
+├── exception/    # 异常处理
+├── mapper/       # MyBatis映射接口
+├── security/     # 安全相关
+├── service/      # 业务逻辑
+└── util/         # 工具类
 ```
+
+## 核心特性
+1. 安全性
+   - 基于Spring Security的认证授权
+   - JWT token认证
+   - 细粒度的权限控制
+
+2. 可扩展性
+   - 模块化设计
+   - 统一的异常处理
+   - 规范的API接口
+
+3. 性能优化
+   - Redis缓存
+   - 异步消息处理
+   - 数据库优化
+
+4. 可维护性
+   - 统一的日志记录
+   - 规范的代码结构
+   - 完善的注释文档
+
+## 快速开始
+1. 环境要求
+   - JDK 17+
+   - MySQL 8.0+
+   - Redis 6.0+
+   - Kafka 2.8+
+   - Maven 3.6+
+
+2. 配置修改
+   - 修改application.yml中的数据库配置
+   - 修改Redis配置
+   - 修改Kafka配置
+   - 配置阿里云OSS
+
+3. 运行项目
+   ```bash
+   mvn spring-boot:run
+   ```
+
+## API文档
+详细的API文档请参考 `src/main/resources/api/` 目录下的文档：
+- product.md：商品管理API
+- order.md：订单管理API
+- user.md：用户管理API
+
+## 异常处理
+系统采用统一的异常处理机制：
+- BusinessException：业务异常
+- GlobalExceptionHandler：全局异常处理器
+- 统一的响应格式：
+  ```json
+  {
+    "success": true/false,
+    "message": "提示信息",
+    "data": {}
+  }
+  ```
+
+## 日志系统
+- 操作日志：记录用户的关键操作
+- 错误日志：记录系统异常
+- 使用Kafka进行日志收集
+
+## 贡献指南
+1. Fork 本仓库
+2. 创建新的功能分支
+3. 提交代码
+4. 创建 Pull Request
+
+## 许可证
+MIT License
