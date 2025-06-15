@@ -34,10 +34,9 @@ public class ProductServiceImpl implements ProductService {
         product.setCreateTime(LocalDateTime.now());
         product.setUpdateTime(LocalDateTime.now());
         
-        productMapper.insert(product);
-        
-        // 保存SKU信息
+        // 保存SKU信息并计算总库存
         if (productDTO.getSkuList() != null && !productDTO.getSkuList().isEmpty()) {
+            int totalStock = 0;
             for (ProductSkuDTO skuDTO : productDTO.getSkuList()) {
                 ProductSku sku = new ProductSku();
                 BeanUtils.copyProperties(skuDTO, sku);
@@ -46,8 +45,12 @@ public class ProductServiceImpl implements ProductService {
                 sku.setUpdateTime(LocalDateTime.now());
                 
                 productSkuMapper.insert(sku);
+                totalStock += sku.getStock();
             }
+            product.setStock(totalStock);
         }
+        
+        productMapper.insert(product);
         
         return getById(product.getId());
     }
@@ -63,16 +66,15 @@ public class ProductServiceImpl implements ProductService {
         BeanUtils.copyProperties(productDTO, product);
         product.setUpdateTime(LocalDateTime.now());
         
-        productMapper.updateById(product);
-        
-        // 更新SKU信息
+        // 更新SKU信息并重新计算总库存
         if (productDTO.getSkuList() != null && !productDTO.getSkuList().isEmpty()) {
             // 删除原有SKU
             LambdaQueryWrapper<ProductSku> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(ProductSku::getProductId, id);
             productSkuMapper.delete(wrapper);
             
-            // 添加新SKU
+            // 添加新SKU并计算总库存
+            int totalStock = 0;
             for (ProductSkuDTO skuDTO : productDTO.getSkuList()) {
                 ProductSku sku = new ProductSku();
                 BeanUtils.copyProperties(skuDTO, sku);
@@ -81,8 +83,12 @@ public class ProductServiceImpl implements ProductService {
                 sku.setUpdateTime(LocalDateTime.now());
                 
                 productSkuMapper.insert(sku);
+                totalStock += sku.getStock();
             }
+            product.setStock(totalStock);
         }
+        
+        productMapper.updateById(product);
         
         return getById(id);
     }

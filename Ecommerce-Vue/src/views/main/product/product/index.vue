@@ -121,13 +121,6 @@
             :min="0"
           />
         </el-form-item>
-        <el-form-item label="商品库存" prop="stock">
-          <el-input-number
-            v-model="form.stock"
-            :min="0"
-            :precision="0"
-          />
-        </el-form-item>
         <el-form-item label="排序号" prop="sort">
           <el-input-number
             v-model="form.sort"
@@ -275,7 +268,6 @@ interface ProductItem {
   description: string;
   mainImage: string;
   price: number;
-  stock: number;
   status: number;
   skuList: any[];
   sort: number;
@@ -310,7 +302,6 @@ const form = reactive<ProductItem>({
   description: '',
   mainImage: '',
   price: 0,
-  stock: 0,
   status: 1,
   skuList: [],
   sort: 0
@@ -339,10 +330,6 @@ const rules = {
   price: [
     { required: true, message: '请输入商品价格', trigger: 'blur' },
     { type: 'number', min: 0, message: '价格必须大于0', trigger: 'blur' }
-  ],
-  stock: [
-    { required: true, message: '请输入商品库存', trigger: 'blur' },
-    { type: 'number', min: 0, message: '库存必须大于0', trigger: 'blur' }
   ],
   status: [
     { required: true, message: '请选择商品状态', trigger: 'change' }
@@ -393,8 +380,8 @@ const getList = async () => {
       tableData.value = []
       total.value = 0
     }
-  } catch (error) {
-    console.error('获取商品列表失败:', error)
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取商品列表失败')
     tableData.value = []
     total.value = 0
   } finally {
@@ -417,8 +404,8 @@ const fetchCategoryList = async () => {
     } else {
       categoryOptions.value = []
     }
-  } catch (error) {
-    console.error('获取分类列表失败:', error)
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '获取分类列表失败')
     categoryOptions.value = []
   }
 }
@@ -432,7 +419,6 @@ const handleAdd = () => {
   form.description = ''
   form.mainImage = ''
   form.price = 0
-  form.stock = 0
   form.status = 1
   form.skuList = []
   fileList.value = []
@@ -448,7 +434,6 @@ const handleEdit = (row: any) => {
   form.description = row.description
   form.mainImage = row.mainImage || ''
   form.price = row.price
-  form.stock = row.stock
   form.status = row.status
   form.skuList = row.skuList || []
   form.sort = row.sort || 0
@@ -476,8 +461,8 @@ const handleDelete = (row: ProductItem) => {
       await deleteProduct(String(row.id))
       ElMessage.success('删除成功')
       getList()
-    } catch (error) {
-      console.error('删除商品失败:', error)
+    } catch (error: any) {
+      ElMessage.error(error.response?.data?.message || '删除商品失败')
     }
   })
 }
@@ -492,11 +477,10 @@ const handleStatusChange = async (row: ProductItem) => {
     // 使用编辑商品接口来更新状态
     await updateProduct(String(row.id), { ...row, status: newStatus })
     ElMessage.success('状态更新成功')
-  } catch (error) {
-    console.error('更新商品状态失败:', error)
+  } catch (error: any) {
     // 恢复状态
     row.status = row.status === 1 ? 0 : 1
-    ElMessage.error('状态更新失败')
+    ElMessage.error(error.response?.data?.message || '状态更新失败')
   }
 }
 
@@ -517,8 +501,8 @@ const handleStockSubmit = async () => {
         ElMessage.success('库存更新成功')
         stockDialogVisible.value = false
         getList()
-      } catch (error) {
-        console.error('更新库存失败:', error)
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '更新库存失败')
       }
     }
   })
@@ -568,8 +552,8 @@ const handleSubmit = async () => {
         }
         dialogVisible.value = false
         getList()
-      } catch (error) {
-        console.error('提交失败:', error)
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '提交失败')
       }
     }
   })
@@ -619,10 +603,9 @@ const handleImageChange = async (file: UploadFile) => {
       file.status = 'fail'
       ElMessage.error('图片上传失败')
     }
-  } catch (error) {
-    console.error('图片上传失败:', error)
+  } catch (error: any) {
     file.status = 'fail'
-    ElMessage.error('图片上传失败')
+    ElMessage.error(error.response?.data?.message || '图片上传失败')
   }
 }
 

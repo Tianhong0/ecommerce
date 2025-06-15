@@ -28,8 +28,6 @@ public class ProductDTO {
     @Positive(message = "价格必须大于0")
     private BigDecimal price;
     
-    @NotNull(message = "库存不能为空")
-    @Positive(message = "库存必须大于0")
     private Integer stock;
     
     @NotNull(message = "状态不能为空")

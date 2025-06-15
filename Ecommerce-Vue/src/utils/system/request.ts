@@ -49,11 +49,12 @@ service.interceptors.response.use(
     if (res.success) {
       return res
     } else {
-      showError(res)
+      ElMessage.error(res.message || res.msg || '请求失败')
       return Promise.reject(res)
     }
   },
   (error: AxiosError)=> {
+    // 详细打印错误信息
     console.error('请求错误详情：', {
       message: error.message,
       response: error.response?.data,
@@ -61,39 +62,17 @@ service.interceptors.response.use(
       config: error.config
     })
     
-    if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
-      ElMessage.error('请求超时，请检查网络连接')
-    } else if (error.response?.status === 401) {
-      // token过期或未授权
+    // 处理401错误
+    if (error.response?.status === 401) {
       store.dispatch('user/loginOut')
-      ElMessage.error('登录已过期，请重新登录')
-    } else if (error.message === 'Network Error') {
-      ElMessage.error('网络错误，请检查后端服务是否正常运行')
-    } else {
-      const badMessage: any = error.message || error
-      const code = parseInt(badMessage.toString().replace('Error: Request failed with status code ', ''))
-      showError({ 
-        code, 
-        message: error.response?.data?.message || badMessage 
-      })
     }
+
+    // 全局异常弹窗
+    const msg = error.response?.data?.message || error.response?.data?.msg || error.message || '请求失败'
+    ElMessage.error(msg)
+
     return Promise.reject(error)
   }
 )
-
-// 错误处理
-function showError(error: any) {
-  // token过期，清除本地数据，并跳转至登录页面
-  if (error.code === 401) {
-    store.dispatch('user/loginOut')
-    ElMessage.error('登录已过期，请重新登录')
-  } else {
-    ElMessage({
-      message: error.msg || error.message || '服务异常',
-      type: 'error',
-      duration: 3 * 1000
-    })
-  }
-}
 
 export default service

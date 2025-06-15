@@ -6,14 +6,13 @@ import com.example.admin.constant.KafkaConstant;
 import com.example.admin.dto.*;
 import com.example.admin.dto.message.OrderMessage;
 import com.example.admin.dto.message.StockMessage;
-import com.example.admin.entity.Order;
-import com.example.admin.entity.OrderDelivery;
-import com.example.admin.entity.OrderItem;
-import com.example.admin.entity.OrderRefund;
+import com.example.admin.entity.*;
+import com.example.admin.exception.BusinessException;
 import com.example.admin.mapper.OrderDeliveryMapper;
 import com.example.admin.mapper.OrderItemMapper;
 import com.example.admin.mapper.OrderMapper;
 import com.example.admin.mapper.OrderRefundMapper;
+import com.example.admin.mapper.ProductSkuMapper;
 import com.example.admin.service.KafkaProducerService;
 import com.example.admin.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +37,28 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemMapper orderItemMapper;
     private final OrderDeliveryMapper orderDeliveryMapper;
     private final OrderRefundMapper orderRefundMapper;
+    private final ProductSkuMapper productSkuMapper;
     private final KafkaProducerService kafkaProducerService;
 
     @Override
     @Transactional
     public OrderDTO create(OrderDTO orderDTO) {
+        // 检查商品库存
+        if (orderDTO.getOrderItems() != null && !orderDTO.getOrderItems().isEmpty()) {
+            for (OrderItemDTO itemDTO : orderDTO.getOrderItems()) {
+                // 查询商品SKU信息
+                ProductSku sku = productSkuMapper.selectById(itemDTO.getSkuId());
+                if (sku == null) {
+                    throw new BusinessException("商品SKU不存在");
+                }
+
+                // 检查库存是否充足
+                if (sku.getStock() < itemDTO.getQuantity()) {
+                    throw new BusinessException("库存不足");
+                }
+            }
+        }
+
         // 生成订单号：ORD + 时间戳 + 4位随机数
         String timestamp = String.valueOf(System.currentTimeMillis());
         String random = String.format("%04d", (int)(Math.random() * 10000));
@@ -69,7 +85,7 @@ public class OrderServiceImpl implements OrderService {
                 item.setCreateTime(now);
                 item.setUpdateTime(now);
                 orderItemMapper.insert(item);
-                
+
                 // 构建订单项消息
                 OrderMessage.OrderItemMessage itemMessage = OrderMessage.OrderItemMessage.builder()
                     .id(item.getId())
@@ -82,12 +98,12 @@ public class OrderServiceImpl implements OrderService {
                     .totalAmount(item.getTotalAmount())
                     .build();
                 orderItemMessages.add(itemMessage);
-                
+
                 // 发送库存扣减消息
                 sendStockDeductMessage(item);
             }
         }
-        
+
         // 发送订单创建消息
         OrderMessage orderMessage = OrderMessage.builder()
             .id(order.getId())
@@ -99,13 +115,13 @@ public class OrderServiceImpl implements OrderService {
             .createTime(now)
             .orderItems(orderItemMessages)
             .build();
-        
+
         kafkaProducerService.sendOrderMessage(KafkaConstant.TOPIC_ORDER_CREATE, orderMessage);
 
         // 返回创建的订单信息
         return getById(order.getId());
     }
-    
+
     /**
      * 发送库存扣减消息
      */
@@ -121,7 +137,7 @@ public class OrderServiceImpl implements OrderService {
             .operateTime(LocalDateTime.now())
             .operationType("DEDUCT")
             .build();
-        
+
         kafkaProducerService.sendStockMessage(KafkaConstant.TOPIC_STOCK_DEDUCT, stockMessage);
     }
 
@@ -192,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
                 .map(order -> {
                     OrderDTO orderDTO = new OrderDTO();
                     BeanUtils.copyProperties(order, orderDTO);
-                    
+
                     // 查询订单项
                     List<OrderItem> orderItems = orderItemMapper.selectList(
                             new LambdaQueryWrapper<OrderItem>()
@@ -245,7 +261,7 @@ public class OrderServiceImpl implements OrderService {
         // 更新订单状态
         order.setStatus(status);
         order.setUpdateTime(LocalDateTime.now());
-        
+
         // 根据状态更新相应时间
         switch (status) {
             case 1: // 待发货
@@ -258,9 +274,9 @@ public class OrderServiceImpl implements OrderService {
                 order.setReceiveTime(LocalDateTime.now());
                 break;
         }
-        
+
         orderMapper.updateById(order);
-        
+
         // 构建订单消息
         OrderMessage orderMessage = OrderMessage.builder()
             .id(order.getId())
@@ -271,7 +287,7 @@ public class OrderServiceImpl implements OrderService {
             .status(status)
             .createTime(order.getCreateTime())
             .build();
-        
+
         // 根据状态发送不同的消息
         switch (status) {
             case 1: // 待发货
@@ -290,7 +306,7 @@ public class OrderServiceImpl implements OrderService {
                 break;
         }
     }
-    
+
     /**
      * 为取消的订单归还库存
      */
@@ -298,7 +314,7 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>()
                         .eq(OrderItem::getOrderId, orderId));
-        
+
         for (OrderItem item : orderItems) {
             StockMessage stockMessage = StockMessage.builder()
                 .productId(item.getProductId())
@@ -311,7 +327,7 @@ public class OrderServiceImpl implements OrderService {
                 .operateTime(LocalDateTime.now())
                 .operationType("RETURN")
                 .build();
-            
+
             kafkaProducerService.sendStockMessage(KafkaConstant.TOPIC_STOCK_RETURN, stockMessage);
         }
     }
@@ -383,7 +399,7 @@ public class OrderServiceImpl implements OrderService {
 
         if (status == 1) { // 已发货
             delivery.setDeliveryTime(LocalDateTime.now());
-            
+
             // 发送订单发货消息
             Order order = orderMapper.selectById(orderId);
             if (order != null) {
@@ -393,15 +409,15 @@ public class OrderServiceImpl implements OrderService {
                     .userId(order.getUserId())
                     .status(2) // 更新为待收货状态
                     .build();
-                
+
                 kafkaProducerService.sendOrderMessage(KafkaConstant.TOPIC_ORDER_DELIVERY, orderMessage);
-                
+
                 // 同时更新订单状态为待收货
                 updateStatus(orderId, 2);
             }
         } else if (status == 2) { // 已签收
             delivery.setReceiveTime(LocalDateTime.now());
-            
+
             // 发送订单完成消息
             Order order = orderMapper.selectById(orderId);
             if (order != null) {
@@ -411,9 +427,9 @@ public class OrderServiceImpl implements OrderService {
                     .userId(order.getUserId())
                     .status(3) // 更新为已完成状态
                     .build();
-                
+
                 kafkaProducerService.sendOrderMessage(KafkaConstant.TOPIC_ORDER_COMPLETE, orderMessage);
-                
+
                 // 同时更新订单状态为已完成
                 updateStatus(orderId, 3);
             }

@@ -1,6 +1,6 @@
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { ElMessage } from 'element-plus'
 
 // 创建axios实例
 const service = axios.create({
@@ -29,15 +29,9 @@ service.interceptors.response.use(
   response => {
     const res = response.data
 
-   
     // 如果返回的状态码不是200，说明接口请求有误
     if (res.code && res.code !== 200) {
-      ElMessage({
-        message: res.message || '请求失败',
-        type: 'error',
-        duration: 5 * 1000
-      })
-
+      ElMessage.error(res.message || res.msg || '请求失败')
       // 401: 未登录或token过期
       if (res.code === 401) {
         // 清除本地token
@@ -45,20 +39,15 @@ service.interceptors.response.use(
         // 跳转到登录页
         router.push('/login')
       }
-     
       return Promise.reject(new Error(res.message || '请求失败'))
     } else {
       return res
     }
   },
   error => {
-    
     console.error('响应错误:', error)
-    ElMessage({
-      message: error.message || '系统错误',
-      type: 'error',
-      duration: 5 * 1000
-    })
+    const msg = error.response?.data?.message || error.response?.data?.msg || error.message || '请求失败'
+    ElMessage.error(msg)
     return Promise.reject(error)
   }
 )

@@ -1052,28 +1052,23 @@ const submitDelivery = async () => {
         ElMessage.success('发货成功')
         deliveryDialogVisible.value = false
         getList()
-      } catch (error) {
-        console.error('发货失败:', error)
-        ElMessage.error('发货失败')
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '发货失败')
       }
     }
   })
 }
 
 // 确认收货
-const handleReceive = (row: OrderItem) => {
-  ElMessageBox.confirm('确认已收到商品？', '提示', {
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await updateOrderDeliveryStatus(String(row.id), { status: 2 })
-      await updateOrderStatus(String(row.id), { status: 3 })
-      ElMessage.success('确认收货成功')
-      getList()
-    } catch (error) {
-      console.error('确认收货失败:', error)
-    }
-  })
+const handleReceive = async (row: OrderItem) => {
+  try {
+    await updateOrderDeliveryStatus(String(row.id), { status: 2 })
+    await updateOrderStatus(String(row.id), { status: 3 })
+    ElMessage.success('确认收货成功')
+    getList()
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '确认收货失败')
+  }
 }
 
 // 处理退款
@@ -1100,50 +1095,29 @@ const submitRefund = async () => {
   await refundFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        if (currentOrder.value.orderRefund && currentOrder.value.orderRefund.status === 0) {
-          // 处理退款
-          if (refundForm.status === 2 && !refundForm.rejectReason) {
-            ElMessage.warning('请填写拒绝原因')
-            return
-          }
-          await processOrderRefund(String(currentOrder.value.id), {
-            status: refundForm.status,
-            rejectReason: refundForm.rejectReason
-          })
-          ElMessage.success('退款处理成功')
-        } else {
-          // 申请退款
-          await handleOrderRefund(String(currentOrder.value.id), {
-            refundAmount: refundForm.refundAmount,
-            reason: refundForm.reason,
-            description: refundForm.description,
-            proofImages: refundForm.proofImages
-          })
-          ElMessage.success('退款申请提交成功')
-        }
+        await processOrderRefund(String(currentOrder.value.id), {
+          status: refundForm.status,
+          rejectReason: refundForm.rejectReason
+        })
+        ElMessage.success('退款处理成功')
         refundDialogVisible.value = false
         getList()
-      } catch (error) {
-        console.error('退款处理失败:', error)
-        ElMessage.error('退款处理失败')
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '退款处理失败')
       }
     }
   })
 }
 
 // 删除订单
-const handleDelete = (row: OrderItem) => {
-  ElMessageBox.confirm('确认删除该订单吗？', '提示', {
-    type: 'warning'
-  }).then(async () => {
-    try {
-      await deleteOrder(String(row.id))
-      ElMessage.success('删除成功')
-      getList()
-    } catch (error) {
-      console.error('删除订单失败:', error)
-    }
-  })
+const handleDelete = async (row: OrderItem) => {
+  try {
+    await deleteOrder(String(row.id))
+    ElMessage.success('删除订单成功')
+    getList()
+  } catch (error: any) {
+    ElMessage.error(error.response?.data?.message || '删除订单失败')
+  }
 }
 
 // 分页相关
@@ -1298,27 +1272,12 @@ const submitCreate = async () => {
   await createFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        // 确保所有金额都是数字类型
-        const orderData = {
-          ...createForm,
-          totalAmount: Number(createForm.totalAmount),
-          payAmount: Number(createForm.payAmount),
-          freightAmount: Number(createForm.freightAmount),
-          orderItems: createForm.orderItems.map(item => ({
-            ...item,
-            productId: Number(item.productId),
-            skuId: item.skuId ? Number(item.skuId) : '',
-            price: Number(item.price),
-            quantity: Number(item.quantity),
-            totalAmount: Number(item.totalAmount)
-          }))
-        }
-        await createOrder(orderData)
+        await createOrder(createForm)
         ElMessage.success('创建订单成功')
         createDialogVisible.value = false
         getList()
-      } catch (error) {
-        console.error('创建订单失败:', error)
+      } catch (error: any) {
+        ElMessage.error(error.response?.data?.message || '创建订单失败')
       }
     }
   })
