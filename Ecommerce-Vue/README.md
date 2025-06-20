@@ -1,120 +1,126 @@
-<h1 align="center">vue-admin-box: Vue3、Element Plus、typescript后台管理系统</h1>
-<p align="center">
-    <a href="https://github.com/vuejs/vue-next">
-        <img src="https://img.shields.io/badge/vue3-3.0.5-brightgreen.svg" alt="vue">
-    </a>
-    <a href="https://github.com/element-plus/element-plus">
-        <img src="https://img.shields.io/badge/elementPlus-^2.0.5-brightgreen.svg" alt="element-plus">
-    </a>
-    <a href="https://github.com/vitejs/vite">
-        <img src="https://img.shields.io/badge/vite-^2.8.6-brightgreen.svg" alt="vite">
-    </a>
-    <a href="https://github.com/microsoft/TypeScript">
-        <img src="https://img.shields.io/badge/typescript-4.1.3-brightgreen.svg" alt="typescript">
-    </a>
-    <a href="https://github.com/hsiangleev/element-plus-admin/blob/master/LICENSE">
-        <img src="https://img.shields.io/github/license/mashape/apistatus.svg" alt="license">
-    </a>
-</p>
+# 电商管理系统 (E-commerce Management System)
 
-English | [简体中文](./README.zh-CN.md)
+## 项目简介 (Project Introduction)
 
-## summary
+这是一个基于 Vue 3 + TypeScript 的现代化电商管理系统，提供了全面的商品、订单、用户和系统管理功能。系统采用最新的前端技术栈，具有高性能、响应式和可扩展的特点。
 
-- [update version](./VERSION.md)
-- After more than three months of iteration, version 1.0 was officially released on August 10, 2021, with four basic templates attached for everyone to use
-- This open source project is developed by individuals and does not restrict any commercial use or personal research. Please click star to encourage me before using it
-- All illegal and pornographic activities involved in this open source project have nothing to do with this source code. Please do not show yourself
-- QQ communication group：912804007，Problems are raised in the group and can be solved in time
+This is a modern e-commerce management system based on Vue 3 and TypeScript, providing comprehensive product, order, user, and system management functions. The system uses the latest front-end technology stack with high performance, responsiveness, and scalability.
 
-## Preview
-if you are not in China, maybe you should download the project to show the demo or use a vpn to visit the online demo.
-- [demo China](https://cmdparkour.gitee.io/vue-admin-box/)
-- [demo World](https://cmdparkour.github.io/vue-admin-box/dist/)
-- [github address](https://github.com/cmdparkour/vue-admin-box)
-- [gitee address](https://gitee.com/cmdparkour/vue-admin-box)
-- It is recommended to use yarn or cnpm for installation in China. NPM installation is prone to problems
+## 技术栈 (Technology Stack)
 
-## Basic Template
-There are four basic templates, which are suitable for zero development and use, and can be found in [github](https://github.com/cmdparkour/vue-admin-box)、[gitee ](https://gitee.com/cmdparkour/vue-admin-box)View directly in the warehouse，The template is shown below:
-1. template-ts-i18n template，container ts and internationalization [github](https://github.com/cmdparkour/vue-admin-box/tree/template-ts-i18n) [gitee](https://gitee.com/cmdparkour/vue-admin-box/tree/template-ts-i18n/) [demo](http://vue-admin-box-template.51weblove.com/ts-i18n/)
-2. template-ts template，container ts，internationalization is not container [github](https://github.com/cmdparkour/vue-admin-box/tree/template-ts) [gitee](https://gitee.com/cmdparkour/vue-admin-box/tree/template-ts/) [demo](http://vue-admin-box-template.51weblove.com/ts)
-3. template-js-i18n template，container js and internationalization [github](https://github.com/cmdparkour/vue-admin-box/tree/template-js-i18n) [gitee](https://gitee.com/cmdparkour/vue-admin-box/tree/template-js-i18n/) [demo](http://vue-admin-box-template.51weblove.com/js-i18n)
-4. template-js template，container js，internationalization is not container [github](https://github.com/cmdparkour/vue-admin-box/tree/template-js) [gitee](https://gitee.com/cmdparkour/vue-admin-box/tree/template-js/) [demo](http://vue-admin-box-template.51weblove.com/js)
+- **前端框架 (Frontend Framework)**: Vue 3
+- **编程语言 (Programming Language)**: TypeScript
+- **状态管理 (State Management)**: Vuex
+- **路由 (Routing)**: Vue Router
+- **UI 组件库 (UI Component Library)**: Element Plus
+- **构建工具 (Build Tool)**: Vite
+- **国际化 (Internationalization)**: vue-i18n
+- **HTTP 请求 (HTTP Requests)**: Axios
 
-## Introduction
+## 功能特性 (Key Features)
 
-**vue-admin-box** is a free and open source background management system template。The latest vue-next, vite, element-plus used in this project. The purpose is to solve the complex configuration of background system in general business。
+### 仪表盘 (Dashboard)
+- 系统资源监控（CPU、内存、磁盘使用率）
+- 可自定义的系统公告
+- 个性化待办事项管理
 
-#### Characteristic function
+### 商品管理 (Product Management)
+- 商品列表
+- 商品分类
+- SKU 管理
+- 商品上下架
 
-- Routing configuration, state management mechanism (State supports local storage by default), encapsulated and perfect Axios and API management mechanism suitable for middle and background development
-- It is very convenient to expand the theme configuration function, and supports three typical middle and background styles by default
-- Routing configuration, state management mechanism (State supports local storage by default), encapsulated and perfect Axios and API management mechanism suitable for middle and background development
-- For the three typical business tables of adding, deleting and modifying query, please see "CRUD table", "category table" and "tree table" in the "page column" for details
-- The refresh function without route jump supports cache page refresh. At present, most frameworks do not support cache page refresh
-- It is a convenient and extensible internationalization solution, and provides two sets of non internationalized basic templates and two sets of internationalized basic templates (TS version / JS version)
-- Handwritten versions of various custom instructions
-- For table common components and pop-up common components that have been verified by multiple middle and background businesses, please see "crud table", "category table" and "tree table" in the "page column" for details
+### 订单管理 (Order Management)
+- 订单列表
+- 订单状态追踪
+- 退款处理
+- 订单导出
 
-#### i18n fast
-install extension in vscode: i18n Ally(https://marketplace.visualstudio.com/items/?itemName=Lokalise.i18n-ally) for show real word in codes and translate faster.
+### 系统管理 (System Management)
+- 用户管理
+- 角色权限控制
+- 系统配置
+- 国际化支持
 
-#### Main technology
+## 项目结构 (Project Structure)
 
-- MVVM framework：vue v3
-- Engineering Management：vite v2
-- UI framework：element-plus
-- Router manage：vue-router v4
-- State Manage ：vuex v4
-- Data request：axios
-- Utility library：@vueuse/core
+```
+Ecommerce-Vue/
+├── public/                 # 静态资源
+├── src/
+│   ├── api/                # API 接口
+│   ├── assets/             # 静态资源
+│   ├── components/         # 公共组件
+│   ├── config/             # 配置文件
+│   ├── directive/          # 自定义指令
+│   ├── layout/             # 布局组件
+│   ├── locale/             # 国际化配置
+│   ├── router/             # 路由配置
+│   ├── store/              # 状态管理
+│   ├── theme/              # 主题样式
+│   ├── utils/              # 工具函数
+│   └── views/              # 页面组件
+├── mock/                   # 模拟数据
+├── tsconfig.json           # TypeScript 配置
+└── vite.config.ts          # Vite 配置
+```
 
-## How to use
+## 快速开始 (Quick Start)
 
-1. get the source code project
+### 克隆项目 (Clone the Project)
+```bash
+git clone https://github.com/your-username/ecommerce-vue.git
+cd ecommerce-vue
+```
 
-   ```
-   git clone https://github.com/cmdparkour/vue-admin-box.git
-   ```
+### 安装依赖 (Install Dependencies)
+```bash
+npm install
+```
 
-   
+### 开发模式 (Development Mode)
+```bash
+npm run dev
+```
 
-2. install dependence, you can use cnpm or yarn in China
+### 构建生产版本 (Build for Production)
+```bash
+npm run build
+```
 
-   ```
-   npm install
-   ```
+## 环境要求 (Environment Requirements)
 
-   
+- Node.js 16+
+- npm 8+
 
-3. run in the development
+## 浏览器支持 (Browser Support)
 
-   ```
-   npm run dev 或 npm run start
-   ```
+- 现代浏览器（Chrome, Firefox, Safari, Edge）
+- Internet Explorer 11+（需要额外的 polyfill）
 
-   
+## 贡献指南 (Contributing)
 
-4. build in production
+1. Fork 仓库
+2. 创建你的特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交你的修改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 提交 Pull Request
 
-   ```
-   npm run build
-   ```
-   
-## Partner project
-* [Thinker-Admin-Box - springboot with vue-admin-box, use java code to generate vue page](https://github.com/yirius/thinker-admin-box)
-* [H5-dooring - a low code project about the mobile website](http://h5.dooring.cn)
-* [ant-simple-pro - a middle website based on Vue3.0, react and angular](https://github.com/lgf196/ant-simple-pro)
-* [vue-vben-admin - a modern vue admin. It is based on Vue3, vite and TypeScript. It's fast！](https://github.com/vbenjs/vue-vben-admin)
+## 许可证 (License)
 
+本项目采用 MIT 许可证。详情请参见 `LICENSE` 文件。
 
-## preview
+## 联系方式 (Contact)
 
-<p align="center">
-    <img src="http://blog.51weblove.com/wp-content/uploads/2021/08/QQ截图20210810174824.png">
-    <img src="http://blog.51weblove.com/wp-content/uploads/2021/08/QQ截图20210810174848.png">
-    <img src="http://blog.51weblove.com/wp-content/uploads/2021/08/QQ截图20210810174923.png">
-    <img src="http://blog.51weblove.com/wp-content/uploads/2021/08/QQ截图20210810174940.png">
-    <img src="http://blog.51weblove.com/wp-content/uploads/2021/08/QQ截图20210810175009.png">
-</p>
+- 项目链接: [https://github.com/your-username/ecommerce-vue](https://github.com/your-username/ecommerce-vue)
+- 邮箱: xxxxxl@example.com
+
+## 鸣谢 (Acknowledgements)
+
+- [Vue.js](https://vuejs.org/)
+- [Element Plus](https://element-plus.org/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Vite](https://vitejs.dev/)
+
+---
+

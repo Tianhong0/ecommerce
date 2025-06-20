@@ -19,7 +19,6 @@ import java.util.List;
 public class OrderMessage {
     private Long id;
     private String orderNo;
-    private Long userId;
     private BigDecimal totalAmount;
     private BigDecimal payAmount;
     private Integer status;

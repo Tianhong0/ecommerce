@@ -145,7 +145,13 @@
       <template #header>
         <div class="card-header">
           <span>系统公告</span>
-          <el-button type="primary" link>更多</el-button>
+          <el-button 
+            type="primary" 
+            link 
+            @click="showNoticeDialog = true"
+          >
+            添加
+          </el-button>
         </div>
       </template>
       <el-timeline>
@@ -155,7 +161,16 @@
           :timestamp="notice.time"
           :type="notice.type"
         >
-          {{ notice.content }}
+          <div class="notice-content">
+            {{ notice.content }}
+            <el-button 
+              type="text" 
+              size="small" 
+              @click="removeNotice(index)"
+            >
+              删除
+            </el-button>
+          </div>
         </el-timeline-item>
       </el-timeline>
     </el-card>
@@ -165,23 +180,88 @@
       <template #header>
         <div class="card-header">
           <span>待办事项</span>
-          <el-button type="primary" link>添加</el-button>
+          <el-button type="primary" link @click="showTodoDialog = true">添加</el-button>
         </div>
       </template>
-      <el-checkbox-group v-model="checkedTodos">
-        <div v-for="(todo, index) in todoList" :key="index" class="todo-item">
-          <el-checkbox :label="todo.id">
+      <div v-for="(todo, index) in todoList" :key="todo.id" class="todo-item">
+        <div class="todo-content">
+          <el-checkbox 
+            :model-value="todo.done"
+            @change="toggleTodoDone(todo.id)"
+          >
             <span :class="{ 'todo-done': todo.done }">{{ todo.content }}</span>
           </el-checkbox>
           <span class="todo-time">{{ todo.time }}</span>
         </div>
-      </el-checkbox-group>
+        <el-button 
+          type="text" 
+          size="small" 
+          @click="removeTodo(todo.id)"
+        >
+          删除
+        </el-button>
+      </div>
     </el-card>
+
+    <!-- 系统公告添加对话框 -->
+    <el-dialog 
+      v-model="showNoticeDialog" 
+      title="添加系统公告" 
+      width="500px"
+    >
+      <el-form :model="newNotice" label-width="80px">
+        <el-form-item label="公告内容" required>
+          <el-input 
+            v-model="newNotice.content" 
+            type="textarea" 
+            :rows="4" 
+            placeholder="请输入系统公告内容"
+          />
+        </el-form-item>
+        <el-form-item label="公告类型">
+          <el-select v-model="newNotice.type" placeholder="请选择公告类型">
+            <el-option label="普通" value="primary" />
+            <el-option label="成功" value="success" />
+            <el-option label="警告" value="warning" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showNoticeDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmAddNotice">确定</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 待办事项添加对话框 -->
+    <el-dialog 
+      v-model="showTodoDialog" 
+      title="添加待办事项" 
+      width="500px"
+    >
+      <el-form :model="newTodo" label-width="80px">
+        <el-form-item label="事项内容" required>
+          <el-input 
+            v-model="newTodo.content" 
+            placeholder="请输入待办事项内容"
+          />
+        </el-form-item>
+        <el-form-item label="完成时间">
+          <el-input 
+            v-model="newTodo.time" 
+            placeholder="例如：今天 14:00 或 明天上午"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showTodoDialog = false">取消</el-button>
+        <el-button type="primary" @click="confirmAddTodo">确定</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { getSystemInfo, getCpuUsage } from '@/api/system'
 import { ElMessage } from 'element-plus'
 import { useRoute } from 'vue-router'
@@ -280,7 +360,11 @@ const fetchSystemResources = async () => {
 }
 
 // 系统公告
-const notices = ref([
+const notices = ref<Array<{
+  content: string;
+  time: string;
+  type: 'warning' | 'primary' | 'success';
+}>>(JSON.parse(localStorage.getItem('dashboard_notices') || '[]') || [
   {
     content: '系统将于本周六凌晨2点进行例行维护',
     time: '2024-03-20 10:00:00',
@@ -298,8 +382,37 @@ const notices = ref([
   }
 ])
 
+// 监听notices变化，自动更新localStorage
+watch(notices, (newNotices) => {
+  localStorage.setItem('dashboard_notices', JSON.stringify(newNotices))
+}, { deep: true })
+
+// 添加公告的方法
+const addNotice = (notice: {
+  content: string;
+  time?: string;
+  type?: 'warning' | 'primary' | 'success';
+}) => {
+  const newNotice = {
+    content: notice.content,
+    time: notice.time || new Date().toLocaleString(),
+    type: notice.type || 'primary'
+  }
+  notices.value.unshift(newNotice)
+}
+
+// 删除公告的方法
+const removeNotice = (index: number) => {
+  notices.value.splice(index, 1)
+}
+
 // 待办事项
-const todoList = ref([
+const todoList = ref<Array<{
+  id: number;
+  content: string;
+  time: string;
+  done: boolean;
+}>>(JSON.parse(localStorage.getItem('dashboard_todos') || '[]') || [
   {
     id: 1,
     content: '审核新上架商品',
@@ -320,7 +433,88 @@ const todoList = ref([
   }
 ])
 
-const checkedTodos = ref<number[]>([])
+// 监听todoList变化，自动更新localStorage
+watch(todoList, (newTodoList) => {
+  localStorage.setItem('dashboard_todos', JSON.stringify(newTodoList))
+}, { deep: true })
+
+// 添加待办事项的方法
+const addTodo = (todo: { content: string; time?: string }) => {
+  const newTodo = {
+    id: Date.now(),
+    content: todo.content,
+    time: todo.time || '今天',
+    done: false
+  }
+  todoList.value.push(newTodo)
+}
+
+// 删除待办事项的方法
+const removeTodo = (id: number) => {
+  const index = todoList.value.findIndex(todo => todo.id === id)
+  if (index !== -1) {
+    todoList.value.splice(index, 1)
+  }
+}
+
+// 切换待办事项完成状态
+const toggleTodoDone = (id: number) => {
+  const todo = todoList.value.find(todo => todo.id === id)
+  if (todo) {
+    todo.done = !todo.done
+  }
+}
+
+// 系统公告添加对话框
+const showNoticeDialog = ref(false)
+const newNotice = ref({
+  content: '',
+  type: 'primary'
+})
+
+// 确认添加系统公告
+const confirmAddNotice = () => {
+  if (!newNotice.value.content.trim()) {
+    ElMessage.warning('请输入公告内容')
+    return
+  }
+  
+  addNotice({
+    content: newNotice.value.content,
+    type: newNotice.value.type as 'warning' | 'primary' | 'success',
+    time: new Date().toLocaleString()
+  })
+  
+  // 重置表单
+  newNotice.value.content = ''
+  newNotice.value.type = 'primary'
+  showNoticeDialog.value = false
+}
+
+// 系统公告添加对话框
+const showTodoDialog = ref(false)
+const newTodo = ref({
+  content: '',
+  time: ''
+})
+
+// 确认添加待办事项
+const confirmAddTodo = () => {
+  if (!newTodo.value.content.trim()) {
+    ElMessage.warning('请输入待办事项内容')
+    return
+  }
+  
+  addTodo({
+    content: newTodo.value.content,
+    time: newTodo.value.time || '今天'
+  })
+  
+  // 重置表单
+  newTodo.value.content = ''
+  newTodo.value.time = ''
+  showTodoDialog.value = false
+}
 
 // 定时器
 let timer: number
@@ -427,6 +621,12 @@ onUnmounted(() => {
 
   .notice-card {
     margin-bottom: 20px;
+
+    .notice-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   }
 
   .todo-card {
@@ -439,6 +639,14 @@ onUnmounted(() => {
 
       &:last-child {
         border-bottom: none;
+      }
+
+      .todo-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-grow: 1;
+        margin-right: 10px;
       }
 
       .todo-done {

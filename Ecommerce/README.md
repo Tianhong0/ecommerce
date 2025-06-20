@@ -1,130 +1,255 @@
-# 电商后台管理系统
+# Ecommerce 电商后台管理系统
 
-## 项目介绍
-这是一个基于Spring Boot 3.x开发的电商后台管理系统，提供了完整的商品管理、订单管理、用户管理等功能。系统采用前后端分离架构，后端提供RESTful API接口。
+## 项目简介
+
+本项目是一个基于 Spring Boot 的企业级电商后台管理系统，提供了完整的电商业务管理解决方案。系统包括用户管理、商品管理、订单管理、权限控制和系统监控等核心功能模块。
 
 ## 技术栈
-- 核心框架：Spring Boot 3.1.0
-- 安全框架：Spring Security + JWT
-- 持久层框架：MyBatis Plus 3.5.3
-- 数据库：MySQL
-- 缓存：Redis
-- 消息队列：Kafka
-- 对象存储：阿里云OSS
-- 其他：Lombok、AOP等
 
-## 主要功能
-### 1. 用户管理
-- 用户注册、登录
-- 基于JWT的认证授权
-- 用户权限管理
-- 用户信息管理
+- **后端框架**
+  - Spring Boot 2.7.5
+  - Spring Security
+  - MyBatis Plus
+  - Kafka
+  - Redis
 
-### 2. 商品管理
-- 商品分类管理
-- 商品信息管理
-- 商品SKU管理
-- 商品库存管理
-- 商品图片上传（阿里云OSS）
+- **数据库**
+  - MySQL 8.0+
+  - Flyway (数据库版本控制)
 
-### 3. 订单管理
-- 订单创建和管理
-- 订单状态流转
-- 订单支付管理
-- 订单退款管理
-- 订单物流管理
+- **缓存与消息**
+  - Redis
+  - Apache Kafka
 
-### 4. 系统功能
-- 系统监控（CPU、内存等）
-- 操作日志记录
-- 异常处理
-- 数据统计
+- **安全**
+  - JWT 认证
+  - Spring Security
 
-## 项目结构
+- **工具**
+  - Maven
+  - Lombok
+  - Swagger/OpenAPI
+
+## 系统架构
+
 ```
-src/main/java/com/example/admin/
-├── aspect/        # AOP切面，用于日志记录等
-├── config/        # 配置类
-├── constant/      # 常量定义
-├── controller/    # 控制器
-├── dto/          # 数据传输对象
-├── entity/       # 实体类
-├── exception/    # 异常处理
-├── mapper/       # MyBatis映射接口
-├── security/     # 安全相关
-├── service/      # 业务逻辑
-└── util/         # 工具类
+├── src
+│   ├── main
+│   │   ├── java                # 核心业务代码
+│   │   │   └── com
+│   │   │       └── example
+│   │   │           └── admin
+│   │   │               ├── config         # 配置类
+│   │   │               ├── controller     # 控制器
+│   │   │               ├── service        # 服务层
+│   │   │               ├── mapper         # 数据访问层
+│   │   │               ├── entity         # 实体类
+│   │   │               └── security       # 安全相关
+│   │   └── resources
+│   │       ├── api             # API文档
+│   │       ├── db              # 数据库迁移脚本
+│   │       └── application.yml # 应用配置
+└── target                      # 编译输出目录
 ```
 
-## 核心特性
-1. 安全性
-   - 基于Spring Security的认证授权
-   - JWT token认证
-   - 细粒度的权限控制
+## 主要功能模块
 
-2. 可扩展性
-   - 模块化设计
-   - 统一的异常处理
-   - 规范的API接口
+1. **用户管理**
+   - 用户注册、登录
+   - 角色和权限控制
+   - 用户信息管理
 
-3. 性能优化
-   - Redis缓存
-   - 异步消息处理
-   - 数据库优化
+2. **商品管理**
+   - 商品CRUD
+   - 商品分类
+   - SKU管理
+   - 库存追踪
 
-4. 可维护性
-   - 统一的日志记录
-   - 规范的代码结构
-   - 完善的注释文档
+3. **订单管理**
+   - 订单创建
+   - 订单状态追踪
+   - 订单退款处理
+
+4. **系统监控**
+   - 资源监控
+   - 性能指标
+   - 日志管理
+
+## 依赖列表
+
+### 核心依赖
+```xml
+<dependencies>
+    <!-- Spring Boot -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- MyBatis Plus -->
+    <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>mybatis-plus-boot-starter</artifactId>
+        <version>3.5.2</version>
+    </dependency>
+
+    <!-- JWT -->
+    <dependency>
+        <groupId>io.jsonwebtoken</groupId>
+        <artifactId>jjwt</artifactId>
+        <version>0.9.1</version>
+    </dependency>
+
+    <!-- Kafka -->
+    <dependency>
+        <groupId>org.springframework.kafka</groupId>
+        <artifactId>spring-kafka</artifactId>
+    </dependency>
+
+    <!-- Redis -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+
+    <!-- MySQL Connector -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <!-- Flyway -->
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+```
+
+## 环境要求
+
+- JDK 17+
+- Maven 3.8+
+- MySQL 8.0+
+- Redis 6.0+
+- Kafka 2.8+
 
 ## 快速开始
-1. 环境要求
-   - JDK 17+
-   - MySQL 8.0+
-   - Redis 6.0+
-   - Kafka 2.8+
-   - Maven 3.6+
 
-2. 配置修改
-   - 修改application.yml中的数据库配置
-   - 修改Redis配置
-   - 修改Kafka配置
-   - 配置阿里云OSS
+### 1. 克隆项目
+```bash
+git clone https://github.com/your-username/ecommerce-admin-system.git
+cd ecommerce-admin-system
+```
 
-3. 运行项目
-   ```bash
-   mvn spring-boot:run
-   ```
+### 2. 配置数据库
+1. 创建 MySQL 数据库
+```sql
+CREATE DATABASE ecommerce_admin;
+```
 
-## API文档
-详细的API文档请参考 `src/main/resources/api/` 目录下的文档：
-- product.md：商品管理API
-- order.md：订单管理API
-- user.md：用户管理API
+2. 修改 `src/main/resources/application.yml` 中的数据库配置
+```yaml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/ecommerce_admin
+    username: your_username
+    password: your_password
+```
 
-## 异常处理
-系统采用统一的异常处理机制：
-- BusinessException：业务异常
-- GlobalExceptionHandler：全局异常处理器
-- 统一的响应格式：
-  ```json
-  {
-    "success": true/false,
-    "message": "提示信息",
-    "data": {}
-  }
-  ```
+### 3. 配置 Redis
+修改 `application.yml` 中的 Redis 配置
+```yaml
+spring:
+  redis:
+    host: localhost
+    port: 6379
+```
 
-## 日志系统
-- 操作日志：记录用户的关键操作
-- 错误日志：记录系统异常
-- 使用Kafka进行日志收集
+### 4. 配置 Kafka
+修改 `application.yml` 中的 Kafka 配置
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+```
+
+### 5. 运行数据库迁移
+```bash
+mvn flyway:migrate
+```
+
+### 6. 启动应用
+```bash
+mvn spring-boot:run
+```
+
+## 测试
+
+### 运行单元测试
+```bash
+mvn test
+```
+
+### 运行集成测试
+```bash
+mvn verify
+```
+
+## 部署
+
+### 打包
+```bash
+mvn clean package
+```
+
+### 生产环境
+建议使用 Docker 容器化部署，详细配置请参考 `Dockerfile`
+
+## API 文档
+
+详细的 API 文档位于 `src/main/resources/api/` 目录，包括各模块的接口定义、请求/响应示例。
+
+## 安全
+
+- 使用 JWT 进行身份认证
+- 基于角色的权限控制
+- 密码使用 BCrypt 加密
+- 防止 SQL 注入和 XSS 攻击
+
+## 性能优化
+
+- Redis 缓存
+- Kafka 异步消息处理
+- MyBatis Plus 查询优化
+- 连接池配置
+
+## 监控与日志
+
+- 使用 Spring Boot Actuator 进行系统监控
+- 集成 Logback 进行日志管理
+- 提供系统资源和性能指标监控接口
 
 ## 贡献指南
-1. Fork 本仓库
-2. 创建新的功能分支
-3. 提交代码
-4. 创建 Pull Request
+
+1. Fork 项目
+2. 创建 feature 分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交代码 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
 
 ## 许可证
-MIT License
+
+本项目基于 MIT 许可证开源。详见 `LICENSE` 文件。
+

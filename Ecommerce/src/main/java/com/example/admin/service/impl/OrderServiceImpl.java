@@ -6,15 +6,22 @@ import com.example.admin.constant.KafkaConstant;
 import com.example.admin.dto.*;
 import com.example.admin.dto.message.OrderMessage;
 import com.example.admin.dto.message.StockMessage;
-import com.example.admin.entity.*;
+import com.example.admin.entity.Order;
+import com.example.admin.entity.OrderDelivery;
+import com.example.admin.entity.OrderItem;
+import com.example.admin.entity.OrderRefund;
+import com.example.admin.entity.Product;
+import com.example.admin.entity.ProductSku;
 import com.example.admin.exception.BusinessException;
 import com.example.admin.mapper.OrderDeliveryMapper;
 import com.example.admin.mapper.OrderItemMapper;
 import com.example.admin.mapper.OrderMapper;
 import com.example.admin.mapper.OrderRefundMapper;
+import com.example.admin.mapper.ProductMapper;
 import com.example.admin.mapper.ProductSkuMapper;
 import com.example.admin.service.KafkaProducerService;
 import com.example.admin.service.OrderService;
+import com.example.admin.util.CacheUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -38,7 +45,9 @@ public class OrderServiceImpl implements OrderService {
     private final OrderDeliveryMapper orderDeliveryMapper;
     private final OrderRefundMapper orderRefundMapper;
     private final ProductSkuMapper productSkuMapper;
+    private final ProductMapper productMapper;
     private final KafkaProducerService kafkaProducerService;
+    private final CacheUtil cacheUtil;
 
     @Override
     @Transactional
@@ -50,6 +59,17 @@ public class OrderServiceImpl implements OrderService {
                 ProductSku sku = productSkuMapper.selectById(itemDTO.getSkuId());
                 if (sku == null) {
                     throw new BusinessException("商品SKU不存在");
+                }
+
+                // 查询商品信息
+                Product product = productMapper.selectById(itemDTO.getProductId());
+                if (product == null) {
+                    throw new BusinessException("库存不存在");
+                }
+
+                // 检查商品状态，0表示下架
+                if (product.getStatus() == 0) {
+                    throw new BusinessException("商品已下架");
                 }
 
                 // 检查库存是否充足
@@ -108,7 +128,6 @@ public class OrderServiceImpl implements OrderService {
         OrderMessage orderMessage = OrderMessage.builder()
             .id(order.getId())
             .orderNo(order.getOrderNo())
-            .userId(order.getUserId())
             .totalAmount(order.getTotalAmount())
             .payAmount(order.getPayAmount())
             .status(order.getStatus())
@@ -117,6 +136,14 @@ public class OrderServiceImpl implements OrderService {
             .build();
 
         kafkaProducerService.sendOrderMessage(KafkaConstant.TOPIC_ORDER_CREATE, orderMessage);
+
+        // 创建订单后更新缓存
+        cacheUtil.updateOrderCache(order);
+        
+        // 查询并缓存订单项
+        List<OrderItem> orderItems = orderItemMapper.selectList(
+            new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId()));
+        cacheUtil.updateOrderItemCache(order.getId(), orderItems);
 
         // 返回创建的订单信息
         return getById(order.getId());
@@ -281,7 +308,6 @@ public class OrderServiceImpl implements OrderService {
         OrderMessage orderMessage = OrderMessage.builder()
             .id(order.getId())
             .orderNo(order.getOrderNo())
-            .userId(order.getUserId())
             .totalAmount(order.getTotalAmount())
             .payAmount(order.getPayAmount())
             .status(status)
@@ -305,6 +331,12 @@ public class OrderServiceImpl implements OrderService {
                 returnStockForCanceledOrder(order.getId());
                 break;
         }
+
+        // 更新缓存
+        cacheUtil.updateOrderCache(order);
+        cacheUtil.updateOrderItemCache(order.getId(), orderItemMapper.selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId())).stream().map(OrderItem::getId).collect(Collectors.toList()));
+        cacheUtil.updateOrderDeliveryCache(orderDeliveryMapper.selectOne(new LambdaQueryWrapper<OrderDelivery>().eq(OrderDelivery::getOrderId, order.getId())));
+        cacheUtil.updateOrderRefundCache(orderRefundMapper.selectOne(new LambdaQueryWrapper<OrderRefund>().eq(OrderRefund::getOrderId, order.getId())));
     }
 
     /**
@@ -349,6 +381,9 @@ public class OrderServiceImpl implements OrderService {
 
         // 删除订单
         orderMapper.deleteById(id);
+
+        // 删除订单时清理缓存
+        cacheUtil.clearOrderCaches(id);
     }
 
     @Override
@@ -382,6 +417,9 @@ public class OrderServiceImpl implements OrderService {
             delivery.setUpdateTime(LocalDateTime.now());
             orderDeliveryMapper.updateById(delivery);
         }
+
+        // 更新缓存
+        cacheUtil.updateOrderDeliveryCache(delivery);
     }
 
     @Override
@@ -406,7 +444,8 @@ public class OrderServiceImpl implements OrderService {
                 OrderMessage orderMessage = OrderMessage.builder()
                     .id(order.getId())
                     .orderNo(order.getOrderNo())
-                    .userId(order.getUserId())
+                    .totalAmount(order.getTotalAmount())
+                    .payAmount(order.getPayAmount())
                     .status(2) // 更新为待收货状态
                     .build();
 
@@ -424,7 +463,8 @@ public class OrderServiceImpl implements OrderService {
                 OrderMessage orderMessage = OrderMessage.builder()
                     .id(order.getId())
                     .orderNo(order.getOrderNo())
-                    .userId(order.getUserId())
+                    .totalAmount(order.getTotalAmount())
+                    .payAmount(order.getPayAmount())
                     .status(3) // 更新为已完成状态
                     .build();
 
@@ -436,6 +476,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderDeliveryMapper.updateById(delivery);
+
+        // 更新缓存
+        cacheUtil.updateOrderDeliveryCache(delivery);
     }
 
     @Override
@@ -490,6 +533,9 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(5); // 已退款
         order.setUpdateTime(now);
         orderMapper.updateById(order);
+
+        // 更新缓存
+        cacheUtil.updateOrderRefundCache(refund);
     }
 
     @Override
@@ -513,6 +559,9 @@ public class OrderServiceImpl implements OrderService {
         }
 
         orderRefundMapper.updateById(refund);
+
+        // 更新缓存
+        cacheUtil.updateOrderRefundCache(refund);
     }
 
     @Override

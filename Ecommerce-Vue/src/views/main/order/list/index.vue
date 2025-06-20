@@ -14,6 +14,7 @@
             <el-option label="已完成" :value="3" />
             <el-option label="已取消" :value="4" />
             <el-option label="已退款" :value="5" />
+            <el-option label="待处理退款" :value="6" />
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -968,7 +969,8 @@ const getStatusType = (status: number) => {
     2: 'success',
     3: 'info',
     4: 'danger',
-    5: 'danger'
+    5: 'danger',
+    6: 'warning'
   }
   return statusMap[status] || 'info'
 }
@@ -981,7 +983,8 @@ const getStatusText = (status: number) => {
     2: '待收货',
     3: '已完成',
     4: '已取消',
-    5: '已退款'
+    5: '已退款',
+    6: '待处理退款'
   }
   return statusMap[status] || '未知'
 }
@@ -989,10 +992,10 @@ const getStatusText = (status: number) => {
 // 获取退款状态类型
 const getRefundStatusType = (status: number) => {
   const statusMap: Record<number, string> = {
-    0: 'warning',
-    1: 'success',
-    2: 'danger',
-    3: 'info'
+    0: 'warning',   // 待处理
+    1: 'success',   // 已同意
+    2: 'danger',    // 已拒绝
+    3: 'info'       // 已完成
   }
   return statusMap[status] || 'info'
 }
@@ -1061,14 +1064,14 @@ const submitDelivery = async () => {
 
 // 确认收货
 const handleReceive = async (row: OrderItem) => {
-  try {
-    await updateOrderDeliveryStatus(String(row.id), { status: 2 })
-    await updateOrderStatus(String(row.id), { status: 3 })
-    ElMessage.success('确认收货成功')
-    getList()
+    try {
+      await updateOrderDeliveryStatus(String(row.id), { status: 2 })
+      await updateOrderStatus(String(row.id), { status: 3 })
+      ElMessage.success('确认收货成功')
+      getList()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '确认收货失败')
-  }
+    }
 }
 
 // 处理退款
@@ -1095,11 +1098,37 @@ const submitRefund = async () => {
   await refundFormRef.value.validate(async (valid) => {
     if (valid) {
       try {
-        await processOrderRefund(String(currentOrder.value.id), {
-          status: refundForm.status,
-          rejectReason: refundForm.rejectReason
-        })
-        ElMessage.success('退款处理成功')
+        if (currentOrder.value.orderRefund) {
+          // 处理退款
+          await processOrderRefund(String(currentOrder.value.id), {
+            status: refundForm.status,
+            rejectReason: refundForm.rejectReason
+          })
+          
+          // 根据退款处理结果更新订单状态
+          if (refundForm.status === 1) {
+            // 同意退款，订单状态改为已退款(5)
+            await updateOrderStatus(String(currentOrder.value.id), { status: 5 })
+          } else if (refundForm.status === 2) {
+            // 拒绝退款，订单状态改为已取消(4)
+            await updateOrderStatus(String(currentOrder.value.id), { status: 4 })
+          }
+          
+          ElMessage.success('退款处理成功')
+        } else {
+          // 申请退款
+          await handleOrderRefund(String(currentOrder.value.id), {
+            refundAmount: refundForm.refundAmount,
+            reason: refundForm.reason,
+            description: refundForm.description,
+            proofImages: refundForm.proofImages
+          })
+          
+          // 更新订单状态为待处理退款(6)
+          await updateOrderStatus(String(currentOrder.value.id), { status: 6 })
+          
+          ElMessage.success('退款申请提交成功')
+        }
         refundDialogVisible.value = false
         getList()
       } catch (error: any) {
@@ -1111,13 +1140,13 @@ const submitRefund = async () => {
 
 // 删除订单
 const handleDelete = async (row: OrderItem) => {
-  try {
-    await deleteOrder(String(row.id))
+    try {
+      await deleteOrder(String(row.id))
     ElMessage.success('删除订单成功')
-    getList()
+      getList()
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '删除订单失败')
-  }
+    }
 }
 
 // 分页相关

@@ -16,8 +16,6 @@ public class Order {
     
     private String orderNo; // 订单编号
     
-    private Long userId; // 用户ID
-    
     private BigDecimal totalAmount; // 订单总金额
     
     private BigDecimal payAmount; // 实付金额
