@@ -1,4 +1,4 @@
-import { loginApi, getInfoApi, loginOutApi } from '@/api/user'
+import { loginApi, getInfoApi, loginOutApi, getCurrentUserInfo } from '@/api/user'
 import { getToken, setToken, removeToken } from '@/utils/system/auth'
 import { ElMessage } from 'element-plus'
 
@@ -7,13 +7,21 @@ export interface userState {
   name: string;
   avatar: string;
   roles: string[];
+  nickname: string;
+  email: string;
+  phone: string;
+  id: number | null;
 }
 
 const state: userState = {
   token: getToken(),
   name: '',
   avatar: '',
-  roles: []
+  roles: [],
+  nickname: '',
+  email: '',
+  phone: '',
+  id: null
 }
 
 const mutations = {
@@ -28,12 +36,24 @@ const mutations = {
   },
   SET_ROLES: (state: userState, roles: string[]) => {
     state.roles = roles
+  },
+  SET_NICKNAME: (state: userState, nickname: string) => {
+    state.nickname = nickname
+  },
+  SET_EMAIL: (state: userState, email: string) => {
+    state.email = email
+  },
+  SET_PHONE: (state: userState, phone: string) => {
+    state.phone = phone
+  },
+  SET_ID: (state: userState, id: number) => {
+    state.id = id
   }
 }
 
 const actions = {
   // 用户登录
-  login({ commit }: any, userInfo: any) {
+  login({ commit, dispatch }: any, userInfo: any) {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       loginApi({
@@ -45,6 +65,8 @@ const actions = {
           if (success) {
             commit('SET_TOKEN', data)
             setToken(data)
+            // 登录成功后立即获取用户信息
+            dispatch('getCurrentUserInfo')
             ElMessage.success({
               message: message || '登录成功',
               type: 'success',
@@ -54,6 +76,35 @@ const actions = {
           } else {
             reject(new Error(message || '登录失败'))
           }
+        })
+        .catch(error => {
+          reject(error)
+        })
+    })
+  },
+
+  // 获取当前用户信息
+  getCurrentUserInfo({ commit }: any) {
+    return new Promise((resolve, reject) => {
+      getCurrentUserInfo()
+        .then((response: any) => {
+          const { data, success } = response
+          if (!success) {
+            reject(new Error('获取用户信息失败'))
+            return
+          }
+          
+          const { username, nickname, email, phone, id, permissions, avatar } = data
+          
+          commit('SET_NAME', username)
+          commit('SET_NICKNAME', nickname || username)
+          commit('SET_EMAIL', email || '')
+          commit('SET_PHONE', phone || '')
+          commit('SET_ID', id)
+          commit('SET_ROLES', permissions || [])
+          commit('SET_AVATAR', avatar || '')
+          
+          resolve(data)
         })
         .catch(error => {
           reject(error)
@@ -93,6 +144,10 @@ const actions = {
       commit('SET_TOKEN', '')
       commit('SET_ROLES', [])
       commit('SET_NAME', '')
+      commit('SET_NICKNAME', '')
+      commit('SET_EMAIL', '')
+      commit('SET_PHONE', '')
+      commit('SET_ID', null)
       commit('SET_AVATAR', '')
       removeToken()
       ElMessage.success({

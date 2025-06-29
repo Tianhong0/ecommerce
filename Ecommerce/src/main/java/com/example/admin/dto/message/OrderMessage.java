@@ -24,7 +24,7 @@ public class OrderMessage {
     private Integer status;
     private LocalDateTime createTime;
     private List<OrderItemMessage> orderItems;
-    
+
     /**
      * 订单项消息模型
      */
@@ -42,4 +42,4 @@ public class OrderMessage {
         private Integer quantity;
         private BigDecimal totalAmount;
     }
-} 
+}

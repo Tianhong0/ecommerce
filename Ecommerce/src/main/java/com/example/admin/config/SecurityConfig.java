@@ -33,6 +33,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // 允许所有人访问的接口
                 .requestMatchers("/auth/login", "/auth/register","/system/info","/system/cpu").permitAll()
+                // 允许产品查询相关接口无需认证访问
+                .requestMatchers(
+                    "/product", 
+                    "/product/**", 
+                    "/category", 
+                    "/category/**"
+                ).permitAll()
                 // 其他所有接口都需要认证
                 .anyRequest().authenticated()
             )

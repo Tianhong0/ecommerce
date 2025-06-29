@@ -1,0 +1,1 @@
+import{s as e}from"./request.12a390b5.js";function r(t){const a=new FormData;return a.append("file",t),e({url:"/upload",method:"post",data:a,headers:{"Content-Type":"multipart/form-data"}})}export{r as u};

@@ -106,7 +106,8 @@ const messages = {
           closeAll: '关闭所有标签',
           closeOther: '关闭其他标签',
           closeCurrent: '关闭当前标签'
-        }
+        },
+        goToRegister: '没有账号？去注册'
       },
       el: {
         pagination: {

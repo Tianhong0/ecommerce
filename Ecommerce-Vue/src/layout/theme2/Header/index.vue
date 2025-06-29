@@ -16,11 +16,19 @@
       <div class="user-info">
         <el-dropdown>
           <span class="el-dropdown-link">
-            {{ t('message.system.user') }}
+            <el-avatar 
+              size="small" 
+              :src="$store.state.user.avatar" 
+              v-if="$store.state.user.avatar"
+            >
+              <img src="https://cube.elemecdn.com/e/fd/0fc7d20532fdaf769a25683617711png.png"/>
+            </el-avatar>
+            {{ $store.state.user.nickname || $store.state.user.name || t('message.system.user') }}
             <i class="sfont system-xiala"></i>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
+              <el-dropdown-item @click="goToUserProfile">{{ t('message.system.userProfile') || '个人信息' }}</el-dropdown-item>
               <el-dropdown-item @click="showPasswordLayer">{{ t('message.system.changePassword') }}</el-dropdown-item>
               <el-dropdown-item @click="loginOut">{{ t('message.system.loginOut') }}</el-dropdown-item>
             </el-dropdown-menu>
@@ -43,8 +51,10 @@ import Word from '../../components/functionList/word.vue'
 import SizeChange from '../../components/functionList/sizeChange.vue'
 import Theme from '../../components/functionList/theme.vue'
 import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 const store = useStore()
+const router = useRouter()
 const { t } = useI18n()
 const layer = reactive({
   show: false,
@@ -61,6 +71,10 @@ const loginOut = async () => {
 
 const showPasswordLayer = () => {
   layer.show = true
+}
+
+const goToUserProfile = () => {
+  router.push('/user/profile')
 }
 </script>
 
@@ -94,6 +108,13 @@ const showPasswordLayer = () => {
     margin-left: 20px;
     .el-dropdown-link {
       color: var(--system-header-breadcrumb-text-color);
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      
+      .el-avatar {
+        margin-right: 8px;
+      }
     }
   }
 }

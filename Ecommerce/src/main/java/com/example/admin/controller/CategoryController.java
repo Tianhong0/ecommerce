@@ -40,14 +40,12 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('product:category:query')")
     public ResponseEntity<ApiResponse> getById(@PathVariable Long id) {
         Category category = categoryService.getById(id);
         return ResponseEntity.ok(new ApiResponse(true, "查询成功", category));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('product:category:query')")
     public ResponseEntity<ApiResponse> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,

@@ -170,7 +170,19 @@
         "closeAll": "关闭所有标签",
         "closeOther": "关闭其他标签",
         "closeCurrent": "关闭当前标签"
-      }
+      },
+      "goToRegister": "没有账号？去注册",
+      "register": "注册",
+      "nickname": "昵称",
+      "email": "邮箱",
+      "phone": "手机号",
+      "registerSuccess": "注册成功",
+      "registerFailed": "注册失败",
+      "registerTip": "请输入注册信息",
+      "registerSuccessTip": "注册成功",
+      "goToLogin": "已有账号？去登录",
+      "userProfile": "用户信息"
+
     },
     "layerTable": {
       "btn": "打开弹窗",

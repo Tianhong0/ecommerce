@@ -1,4 +1,5 @@
 import request from '@/utils/system/request'
+import { ApiResponse } from '@/types/api'
 
 /** 登录api */
 export function loginApi(data: object) {
@@ -6,7 +7,33 @@ export function loginApi(data: object) {
     url: '/auth/login',
     method: 'post',
     data
-  })
+  }) as Promise<ApiResponse<string>>
+}
+
+/** 注册api */
+export function registerApi(data: object) {
+  return request({
+    url: '/auth/register',
+    method: 'post',
+    data
+  }) as Promise<ApiResponse>
+}
+
+/** 获取当前用户信息 */
+export function getCurrentUserInfo() {
+  return request({
+    url: '/auth/info',
+    method: 'get'
+  }) as Promise<ApiResponse>
+}
+
+/** 更新当前用户信息 */
+export function updateCurrentUser(data: object) {
+  return request({
+    url: '/auth/update',
+    method: 'put',
+    data
+  }) as Promise<ApiResponse>
 }
 
 /** 获取用户信息Api */
@@ -15,7 +42,7 @@ export function getInfoApi(data: object) {
     url: '/user/info',
     method: 'post',
     data
-  })
+  }) as Promise<ApiResponse>
 }
 
 /** 退出登录Api */

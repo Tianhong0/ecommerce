@@ -26,6 +26,8 @@ import productRoutes from './modules/product'
 import SystemManageroute from './modules/systemManage'
 import Orderoute from './modules/order'
 import Statisticsroute from './modules/statistics'
+import userRoutes from './modules/user'
+
 /** 
  * @name 初始化必须要的路由
  * @description 使用reactive属性使得modules可以在路由菜单里面实时响应，搞定菜单回显的问题
@@ -37,6 +39,7 @@ let modules = reactive([
   Orderoute,
   Statisticsroute,
   SystemManageroute,
+  userRoutes,
 ])
 
 const { t } = i18n.global

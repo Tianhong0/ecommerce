@@ -39,14 +39,12 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('product:query')")
     public ResponseEntity<ApiResponse> getById(@PathVariable Long id) {
         ProductDTO result = productService.getById(id);
         return ResponseEntity.ok(new ApiResponse(true, "查询成功", result));
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('product:query')")
     public ResponseEntity<ApiResponse> list(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,

@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 创建订单后更新缓存
         cacheUtil.updateOrderCache(order);
-        
+
         // 查询并缓存订单项
         List<OrderItem> orderItems = orderItemMapper.selectList(
             new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId()));

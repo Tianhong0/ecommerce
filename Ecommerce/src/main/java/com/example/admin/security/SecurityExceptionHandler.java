@@ -23,39 +23,39 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SecurityExceptionHandler implements AuthenticationEntryPoint, AccessDeniedHandler {
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
-        log.error("认证异常: {}", authException.getMessage());
-        
+
+
         response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        
+
         Map<String, Object> body = new HashMap<>();
         body.put("success", false);
         body.put("message", "未登录或Token已过期");
         body.put("code", "UNAUTHORIZED");
         body.put("status", HttpStatus.UNAUTHORIZED.value());
-        
+
         objectMapper.writeValue(response.getOutputStream(), body);
     }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException)
             throws IOException, ServletException {
-        log.error("权限异常: {}", accessDeniedException.getMessage());
-        
+
+
         response.setStatus(HttpStatus.FORBIDDEN.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        
+
         Map<String, Object> body = new HashMap<>();
         body.put("success", false);
         body.put("message", "没有权限执行此操作");
         body.put("code", "FORBIDDEN");
         body.put("status", HttpStatus.FORBIDDEN.value());
-        
+
         objectMapper.writeValue(response.getOutputStream(), body);
     }
-} 
+}
