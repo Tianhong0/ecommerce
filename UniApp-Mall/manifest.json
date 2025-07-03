@@ -1,5 +1,5 @@
 {
-    "name" : "UniApp-Mall",
+    "name" : "电商平台",
     "appid" : "__UNI__93DEFD7",
     "description" : "电商平台移动端商城",
     "versionName" : "1.0.0",
@@ -83,5 +83,6 @@
         "template" : "index.html"
     },
     "locale" : "zh-Hans",
-    "sassImplementationName" : "dart-sass"
+    "sassImplementationName" : "dart-sass",
+    "vueVersion" : "2"
 }

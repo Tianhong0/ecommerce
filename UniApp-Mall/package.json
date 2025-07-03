@@ -4,6 +4,7 @@
   "description": "电商平台移动端商城",
   "main": "main.js",
   "scripts": {
+     "dev": "uni -p mp-weixin",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -14,7 +15,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@dcloudio/uni-app": "^2.0.1",
+    "@dcloudio/uni-app": "latest",
     "@dcloudio/uni-ui": "^1.4.20"
-  }
+  },
+"devDependencies": {
+  "@vue/cli-service": "^5.0.0"
+}
 } 

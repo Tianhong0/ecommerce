@@ -1,69 +1,129 @@
+# 服务器配置
 server:
+  # 应用程序运行端口，默认为8080
   port: 8080
 
+# Spring 框架配置
 spring:
+  # 数据库连接配置
   datasource:
+    # MySQL JDBC驱动
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库连接URL，配置了字符编码和时区
     url: jdbc:mysql://localhost:3306/ecommerce?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    # 数据库用户名
     username: root
+    # 数据库密码
     password: 123456
 
+  # Redis 缓存配置
   data:
     redis:
+      # Redis 服务器地址
       host: localhost
+      # Redis 默认端口
       port: 6379
+      # 使用的数据库索引
       database: 0
+      # 连接超时时间（毫秒）
       timeout: 10000
+      # Lettuce 连接池配置
       lettuce:
         pool:
+          # 最大活跃连接数
           max-active: 8
+          # 最大等待时间（-1表示不限制）
           max-wait: -1
+          # 最大空闲连接数
           max-idle: 8
+          # 最小空闲连接数
           min-idle: 0
+      # Redis 密码
       password: 123456
+
+  # 文件上传配置
   servlet:
     multipart:
+      # 启用文件上传
       enabled: true
+      # 单个文件最大大小
       max-file-size: 10MB
+      # 单次请求最大文件总大小
       max-request-size: 10MB
+      # 临时文件存储位置
       location: ${java.io.tmpdir}
 
+  # Kafka 消息队列配置
   kafka:
+    # Kafka 服务器地址
     bootstrap-servers: localhost:9092
+    # 生产者配置
     producer:
+      # 发送失败重试次数
       retries: 3
+      # 批量发送大小
       batch-size: 16384
+      # 缓冲区大小
       buffer-memory: 33554432
+      # 消息确认机制（all表示所有副本都确认）
       acks: all
+      # 键序列化器
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # 值序列化器
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    # 消费者配置
     consumer:
+      # 消费者组ID
       group-id: ecommerce-group
+      # 自动提交间隔（毫秒）
       auto-commit-interval: 1000
+      # 消费策略（earliest表示从最早的消息开始消费）
       auto-offset-reset: earliest
+      # 键反序列化器
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 值反序列化器
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      # 是否自动提交偏移量
       enable-auto-commit: true
 
+# 日志配置
 logging:
+  # 日志级别配置
   level:
+    # Spring 框架日志级别
     org.springframework: warn
+    # Kafka 日志级别
     org.apache.kafka: warn
+    # 根日志级别
     root: debug
 
+# MyBatis-Plus 配置
 mybatis-plus:
+  # XML映射文件位置
   mapper-locations: classpath:mapper/*.xml
+  # 实体类包扫描
   type-aliases-package: com.example.admin.entity
+  # MyBatis 配置
   configuration:
+    # 下划线转驼峰命名
     map-underscore-to-camel-case: true
+    # 日志实现（控制台输出）
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # 全局配置
   global-config:
     db-config:
+      # 主键生成策略
       id-type: auto
+      # 逻辑删除字段
       logic-delete-field: deleted
+      # 逻辑删除值
       logic-delete-value: 1
+      # 逻辑未删除值
       logic-not-delete-value: 0
 
+# JWT 配置
 jwt:
+  # JWT 签名密钥（至少32字节）
   secret: your-secret-key-must-be-at-least-32-bytes-long-for-hs512
-  expiration: 86400000  # 24小时，单位：毫秒
+  # JWT 过期时间（毫秒）
+  expiration: 86400000  # 24小时

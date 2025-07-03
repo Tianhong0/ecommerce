@@ -1,2 +1,2 @@
-[2025-06-28 18:08:26,473] ERROR Encountered fatal fault: Unexpected error in raft IO thread (org.apache.kafka.server.fault.ProcessTerminatingFaultHandler)
-org.apache.kafka.common.errors.CorruptRecordException: Found record size 0 smaller than minimum record overhead (14) in file D:\kafka\kafka_2.13-4.0.0\logs2\__cluster_metadata-0\00000000000000000000.log.
+[2025-07-01 20:52:15,758] INFO [SnapshotGenerator id=1] Creating new KRaft snapshot file snapshot 00000000000000106550-0000000012 because we have waited at least 60 minute(s). (org.apache.kafka.image.publisher.SnapshotGenerator)
+[2025-07-01 20:52:15,764] INFO [SnapshotEmitter id=1] Successfully wrote snapshot 00000000000000106550-0000000012 (org.apache.kafka.image.publisher.SnapshotEmitter)

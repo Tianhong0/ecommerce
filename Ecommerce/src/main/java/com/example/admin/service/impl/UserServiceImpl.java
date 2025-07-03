@@ -29,26 +29,64 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 用户服务实现类
+ * 提供用户认证、用户管理和用户角色管理相关功能
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     
+    /**
+     * 用户数据访问对象
+     */
     private final UserMapper userMapper;
+    
+    /**
+     * 用户角色关联数据访问对象
+     */
     private final UserRoleMapper userRoleMapper;
+    
+    /**
+     * 密码加密工具
+     */
     private final PasswordEncoder passwordEncoder;
+    
+    /**
+     * 认证管理器
+     */
     private final AuthenticationManager authenticationManager;
+    
+    /**
+     * JWT工具类
+     */
     private final JwtUtil jwtUtil;
 
+    /**
+     * 用户登录
+     * 
+     * @param request 登录请求，包含用户名和密码
+     * @return JWT令牌字符串
+     */
     @Override
     public String login(LoginRequest request) {
+        // 使用Spring Security进行身份验证
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
         
+        // 将认证信息存入安全上下文
         SecurityContextHolder.getContext().setAuthentication(authentication);
+        // 生成JWT令牌
         return jwtUtil.generateToken(authentication);
     }
 
+    /**
+     * 用户注册
+     * 
+     * @param request 注册请求，包含用户基本信息
+     * @throws RuntimeException 当用户名已存在时抛出异常
+     */
     @Override
     @Transactional
     public void register(RegisterRequest request) {
@@ -58,21 +96,29 @@ public class UserServiceImpl implements UserService {
             throw new RuntimeException("用户名已存在");
         }
 
+        // 创建新用户对象并设置属性
         User user = new User();
         user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPassword(passwordEncoder.encode(request.getPassword())); // 密码加密存储
         user.setNickname(request.getNickname());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
-        user.setStatus(1);
+        user.setStatus(1); // 设置状态为启用
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
 
+        // 保存用户信息到数据库
         userMapper.insert(user);
     }
 
+    /**
+     * 获取当前登录用户信息
+     * 
+     * @return 当前登录用户实体，如果未登录则返回null
+     */
     @Override
     public User getCurrentUser() {
+        // 从安全上下文中获取认证信息
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl) {
             return ((UserDetailsImpl) authentication.getPrincipal()).getUser();
@@ -80,6 +126,12 @@ public class UserServiceImpl implements UserService {
         return null;
     }
     
+    /**
+     * 创建新用户（管理员操作）
+     * 
+     * @param user 用户信息
+     * @throws BusinessException 当用户名已存在时抛出异常
+     */
     @Override
     @Transactional
     public void createUser(User user) {
@@ -93,11 +145,18 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
-        user.setStatus(1);
+        user.setStatus(1); // 设置状态为启用
         
+        // 保存用户信息到数据库
         userMapper.insert(user);
     }
     
+    /**
+     * 更新用户信息
+     * 
+     * @param user 更新后的用户信息
+     * @throws BusinessException 当用户不存在或用户名重复时抛出异常
+     */
     @Override
     @Transactional
     public void updateUser(User user) {
@@ -107,24 +166,31 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException("用户不存在");
         }
         
-        // 检查用户名是否重复
+        // 检查用户名是否重复（仅当用户名发生变化时检查）
         if (!existingUser.getUsername().equals(user.getUsername()) &&
             userMapper.selectCount(new LambdaQueryWrapper<User>()
                 .eq(User::getUsername, user.getUsername())) > 0) {
             throw new BusinessException("用户名已存在");
         }
         
-        // 如果密码不为空，则更新密码
+        // 如果密码不为空，则更新密码（加密处理）
         if (StringUtils.hasText(user.getPassword())) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         } else {
-            user.setPassword(null);
+            user.setPassword(null); // 不更新密码字段
         }
         
+        // 更新时间
         user.setUpdateTime(LocalDateTime.now());
+        // 更新用户信息
         userMapper.updateById(user);
     }
     
+    /**
+     * 删除用户
+     * 
+     * @param id 用户ID
+     */
     @Override
     @Transactional
     public void deleteUser(Long id) {
@@ -136,11 +202,29 @@ public class UserServiceImpl implements UserService {
         userMapper.deleteById(id);
     }
     
+    /**
+     * 根据ID获取用户信息
+     * 
+     * @param id 用户ID
+     * @return 用户实体
+     */
     @Override
     public User getUser(Long id) {
         return userMapper.selectById(id);
     }
     
+    /**
+     * 分页查询用户列表
+     * 
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @param username 用户名（模糊查询）
+     * @param nickname 昵称（模糊查询）
+     * @param email 邮箱（模糊查询）
+     * @param phone 手机号（模糊查询）
+     * @param status 状态
+     * @return 用户DTO分页对象
+     */
     @Override
     public Page<UserDTO> listUsers(Integer pageNum, Integer pageSize, String username, String nickname, String email, String phone, Integer status) {
         // 查询用户列表
@@ -166,6 +250,7 @@ public class UserServiceImpl implements UserService {
         // 按创建时间倒序排序
         wrapper.orderByDesc(User::getCreateTime);
         
+        // 执行分页查询
         Page<User> userPage = userMapper.selectPage(new Page<>(pageNum, pageSize), wrapper);
         
         // 获取所有用户ID
@@ -197,6 +282,12 @@ public class UserServiceImpl implements UserService {
         return dtoPage;
     }
     
+    /**
+     * 更新用户状态
+     * 
+     * @param id 用户ID
+     * @param status 新状态（1-启用，0-禁用）
+     */
     @Override
     @Transactional
     public void updateUserStatus(Long id, Integer status) {
@@ -208,6 +299,12 @@ public class UserServiceImpl implements UserService {
         userMapper.updateById(user);
     }
     
+    /**
+     * 为用户分配角色
+     * 
+     * @param userId 用户ID
+     * @param roleIds 角色ID列表
+     */
     @Override
     @Transactional
     public void assignRoles(Long userId, List<Long> roleIds) {
@@ -225,6 +322,12 @@ public class UserServiceImpl implements UserService {
         }
     }
     
+    /**
+     * 获取用户的角色ID列表
+     * 
+     * @param userId 用户ID
+     * @return 角色ID列表
+     */
     @Override
     public List<Long> getUserRoleIds(Long userId) {
         return userRoleMapper.selectList(new LambdaQueryWrapper<UserRole>()
