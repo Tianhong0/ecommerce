@@ -241,15 +241,4 @@ mvn clean package
 - 集成 Logback 进行日志管理
 - 提供系统资源和性能指标监控接口
 
-## 贡献指南
-
-1. Fork 项目
-2. 创建 feature 分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交代码 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
-
-## 许可证
-
-本项目基于 MIT 许可证开源。详见 `LICENSE` 文件。
 
